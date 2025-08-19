@@ -88,7 +88,7 @@ int main() {
         // process client request and send response to client
         // in this program, I will only send() "Hello World" to whoever makes a request
         printf("accepted client request, sending message to client\n");
-        char *msg = "Hello world!\n";
+        char *msg = "Hello client! Thanks for sending the request!\n";
         send(newfd, msg, strlen(msg), 0);
         printf("Message sent!\n");
     }
