@@ -3,10 +3,11 @@
 #include <string.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <unistd.h>
 
 #define LOCAL_IP "127.0.0.1"
 #define PORT "4950"
-#define MAX 100
+#define MAXBUFSIZE 200
 
 void *get_in_addr(struct addrinfo *addrinfo) {
     struct sockaddr_in *ipv4;
@@ -23,6 +24,19 @@ void *get_in_addr(struct addrinfo *addrinfo) {
     }
 
     return in_addr;
+}
+
+void validate_recv_response(ssize_t n, char **buf) {
+    if(n == 0) {
+        printf("Server closed\n");
+    }
+    else if(n > 0) {
+        buf[n] = '\0';
+    }
+    else {
+        printf("Error: while recv() ing\n");
+        exit(1);
+    }
 }
 
 int main(int argc, char* argv[]) {
@@ -43,7 +57,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    for(p = servinfo; p != NULL; p = p->ai_next) {
+for(p = servinfo; p != NULL; p = p->ai_next) {
         // socket(domain, type, protocol)
         // domain = PF_INET
         if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
@@ -54,7 +68,7 @@ int main(int argc, char* argv[]) {
         // conenct to server
         if(connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
             printf("Error: connect\n");
-            exit(1);
+            continue;
         }
 
         break;
@@ -76,8 +90,27 @@ int main(int argc, char* argv[]) {
 
     printf("Sending request to server: %s\n", ipstr);
 
-    char buf[MAX];
-    recv(sockfd, buf, sizeof buf, 0);
+    char buf[MAXBUFSIZE];
+    ssize_t recv_msg_last_idx = recv(sockfd, buf, sizeof buf, 0);
+    validate_recv_response(recv_msg_last_idx, &buf);
 
-    printf("let's see if we actually received anything!: %s\n", buf);
+    printf("Server response: %s\n", buf);
+
+    char response[10];
+    scanf("%s", response);
+
+    if(send(sockfd, response, strlen(response), 0) == -1) {
+        printf("Error: sending choice to server\n");
+        exit(1);
+    }
+    printf("Decision sent!\n");
+
+    memset(buf, 0, sizeof buf);
+    recv_msg_last_idx = recv(sockfd, buf, sizeof buf, 0);
+
+    validate_recv_response(recv_msg_last_idx, &buf);
+
+    printf("Here is your order: %s\n", buf);
+
+    close(sockfd);
 }

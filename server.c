@@ -3,9 +3,11 @@
 #include <string.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <unistd.h>
 
 #define PORT "4950"
 #define BACKLOG 10
+#define MAXBUFSIZE 200
 
 int main() {
     // set up a server
@@ -35,6 +37,14 @@ int main() {
             continue;
         }
 
+        // Allowing fast restart after closing a server so that prevent a
+        // 'address already in use' error
+        int yes = 1;
+        if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof yes) == -1) {
+            printf("Error: set socket option\n");
+            continue;
+        }
+
         // bind: necessary for servers
         if(bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
             printf("Error: bind\n");
@@ -58,24 +68,6 @@ int main() {
         exit(1);
     }
 
-    // Exposing the IP that the client can use to send messages to this server
-    char ipstr[INET6_ADDRSTRLEN];
-    struct sockaddr_in *ipv4;
-    struct sockaddr_in6 *ipv6;
-    void *addr;
-    // inet_ntop(int, void *, char *, socklen_t)
-    if(p->ai_family == AF_INET) {
-        ipv4 = (struct sockaddr_in *)p->ai_addr;
-        addr = &(ipv4->sin_addr);
-    } else { // AF_INET6
-        ipv6 = (struct sockaddr_in6 *)p->ai_addr;
-        addr = &(ipv6->sin6_addr);
-    }
-
-    inet_ntop(p->ai_family, addr, ipstr, sizeof ipstr);
-
-    printf("Send requests to the server using this IP: %s\n", ipstr);
-
     while(1) {
         // accept
         // accept returns a new socket descriptor, this socket interface will be used to deal with one particular client
@@ -88,11 +80,57 @@ int main() {
         // process client request and send response to client
         // in this program, I will only send() "Hello World" to whoever makes a request
         printf("accepted client request, sending message to client\n");
-        char *msg = "Hello client! Thanks for sending the request!\n";
-        send(newfd, msg, strlen(msg), 0);
-        printf("Message sent!\n");
+        char msg[] = (
+            "Would you like Fried chicken or Poutine?\n"
+            "Please enter 1 for fried chicken\n"
+            "Enter 2 for poutine\n"
+        );
+        if(send(newfd, msg, strlen(msg) + 1, 0) == -1) {
+            printf("Error: sending the initial prompt to the client\n");
+            printf("Don't exit to keep the server running\n");
+        }
+        printf("Message sent!\n\n");
+
+        // receive the decision
+        char buf[MAXBUFSIZE];
+        int n = recv(newfd, buf, sizeof buf, 0);
+
+        if(n > 0) {
+            buf[n] = '\0';
+        }
+        else if(n == 0) {
+            printf("Server closed\n");
+        }
+        else {
+            printf("Error: recv");
+        }
+
+        printf("Ahh, great choice! (%s)\n", buf);
+
+        // Sending the message according to the client response
+        // memset(msg, 0, sizeof msg);
+        char client_choice[20];
+        memset(client_choice, 0, sizeof client_choice);
+
+        if(strcmp(buf, "1") == 0) {
+            strcpy(client_choice, "fried chicken");
+        }
+        else if(strcmp(buf, "2") == 0) {
+            strcpy(client_choice, "poutine");
+        }
+        else {
+            printf("Please select a valid response (Either 1 or 2).\n");
+        }
+
+
+        printf("You have chosen: %s. \nEnjoy!\n", client_choice);
+        
+        if(send(newfd, client_choice, strlen(client_choice) + 1, 0) == -1) {
+            printf("Error: sending client choice response\n");
+            exit(1);
+        }
+
+        close(newfd);
     }
-
-
-    printf("test\n");
+    close(sockfd);
 }
