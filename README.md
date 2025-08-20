@@ -20,15 +20,17 @@ Content-Type: text/html
 Content-Length: 1024
 ...
 
-<html>Hello World</html>
+`<html>Hello World</html>`
 
 
-- The browser sees the Content-Type (text/html) and hands the body (<html>...</html>) to the HTML parser.
+- The browser sees the Content-Type (text/html) and hands the body (`<html>...</html>)` to the HTML parser.
 - The parser builds a DOM tree (Document Object Model):
 
+```
 HTML
  └── BODY
-      └── "Hello World"
+      └── Hello World
+```
 
 
 - The browser also loads CSS (if any) and builds a CSSOM tree (CSS Object Model).
@@ -39,7 +41,7 @@ HTML
 
 text/plain
 If instead of text/html, the server responds with plain text, then the html is not parsed, and the return would look something like this:
-<html>Hello World</html>
+```<html>Hello World</html>```
 
 Pure text, no rendering, no styling!
 
