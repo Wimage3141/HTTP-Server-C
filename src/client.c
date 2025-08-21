@@ -88,6 +88,7 @@ for(p = servinfo; p != NULL; p = p->ai_next) {
         sizeof ipstr
     );
 
+    // In my toy server, the server talks first, but in HTTP
     printf("Sending request to server: %s\n", ipstr);
 
     char buf[MAXBUFSIZE];

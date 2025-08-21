@@ -1,7 +1,22 @@
 Goal: Make an HTTP server
 
-Start by making a TCP server
+HTTP Server in progress:
+- 
 
+
+TCP Server completed:
+- Working server that accepts client request and ignores (obvious) bad requests without crashing
+- client can send requests to communicate with the server and choose one of two meals!
+- Communication currently only happens through localhost, will try LAN after http server
+- Problem: Client communication is hard-coded and the client might now handle an unpredictable event properly    
+One solution could be that the server sends a signal, indicating if the server response is good or bad, if good, the client can carry on with it's 'script', if bad then display some message and rerun that logic.  
+I will skip this part for now and wait to handle this when I've implemented an HTTP server instead of making my custom signals now
+
+
+Process of making the HTTP server:  
+In my toy server, the server sends the first message, but in HTTP, the client send()s the first request which the server recv()s, parses until CRLF (`\r\n\r\n`) and then goes about doing it's business
+
+Process of making the TCP server:  
 The server connects to the client and gets out of the accept() 'block' once the client
 initiates the 'connect()' call
 

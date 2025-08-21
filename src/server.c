@@ -73,7 +73,7 @@ int main() {
         // accept returns a new socket descriptor, this socket interface will be used to deal with one particular client
         // whereas the previous 'sockfd' will be used for listening for additional clients
         struct sockaddr_storage their_addr;
-        socklen_t addr_size;
+        socklen_t addr_size = sizeof(their_addr);
         printf("Waiting to accept\n");
         int newfd = accept(sockfd, (struct sockaddr*)&their_addr, &addr_size);
 
@@ -92,10 +92,20 @@ int main() {
         printf("Message sent!\n\n");
 
         // receive the decision
-        char buf[MAXBUFSIZE];
+        char buf[2];
         int n = recv(newfd, buf, sizeof buf, 0);
 
+        printf("test: what's n? %d\n", n);
+        
         if(n > 0) {
+            if(n > 1) {
+                printf("Response length exceeded, did not select '1' or '2'\n");
+                // send an indicator that'll signal that something is wrong with the user input
+                // instead of making a custom one just for this case, I'll move on to http since that is exactly 
+                // what http is for! (among other things)
+                continue;
+            }
+
             buf[n] = '\0';
         }
         else if(n == 0) {
@@ -113,10 +123,10 @@ int main() {
         memset(client_choice, 0, sizeof client_choice);
 
         if(strcmp(buf, "1") == 0) {
-            strcpy(client_choice, "fried chicken");
+            strcpy(client_choice, "Fried chicken");
         }
         else if(strcmp(buf, "2") == 0) {
-            strcpy(client_choice, "poutine");
+            strcpy(client_choice, "Poutine");
         }
         else {
             printf("Please select a valid response (Either 1 or 2).\n");

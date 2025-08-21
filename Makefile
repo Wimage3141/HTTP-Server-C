@@ -2,7 +2,6 @@ CC = gcc
 CFLAGS = -Wall
 BUILD_DIR = build
 SRC_DIR = src
-ARGS =
 
 .PHONY: server client clean
 
@@ -13,7 +12,7 @@ server: $(BUILD_DIR)/server_exe | $(BUILD_DIR)
 	$(BUILD_DIR)/server_exe
 
 client: $(BUILD_DIR)/client.o | $(BUILD_DIR)
-	@echo "Client built, execute $(BUILD_DIR)/client"
+	@echo "Client built, execute $(BUILD_DIR)/client <args, if any>"
 	$(CC) $(CFLAGS) $^ -o $(BUILD_DIR)/client
 
 $(BUILD_DIR)/server_exe: $(BUILD_DIR)/server.o | $(BUILD_DIR)
