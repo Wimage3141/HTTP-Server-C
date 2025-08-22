@@ -9,6 +9,47 @@
 #define BACKLOG 10
 #define MAXBUFSIZE 200
 
+// HTTP functions
+/*
+HTTP/1.1 200 OK\r\n
+Content-Length = \r\n
+Content-Type = text/html\r\n
+\r\n
+<body>
+*/
+// void http_response_wrapper() {
+    
+// }
+
+void http_request_parser(char *http_request, char **method, char **path, char **version, int *status_code) {
+    char extra[16];
+    memset(extra, 0, sizeof extra);
+
+    sscanf(http_request, "%s %s %s %s", method, path, version, extra);
+
+    // GET request
+    if(strcmp(method, "GET") == 0) {
+        if(strlen(extra) != 0) {
+            printf("Bad Request: Expected 3 items in request header, got more.\n");
+            *status_code = 400; // Bad request
+            return;
+        }
+        if(strlen(path) > 255) {
+            printf("URI Too Long: URI can be 255 chars at max.\n");
+            *status_code = 414;
+            return;
+        }
+        if(strncmp(version, "HTTP/1.1\r\n", strlen(version)) != 0) {
+            printf("Bad Request: Unrecognized HTTP version.\n");
+            *status_code = 400;
+            return;
+        }
+    }
+    else {
+        *status_code = 400; // Bad request
+    }
+}
+
 int main() {
     // set up a server
     int rv;
@@ -98,8 +139,17 @@ int main() {
 
         printf("First HTTP formatted request incoming? Exciting!\n");
         printf("The actual HTTP formatter request: \n%s\n", buf);
+
+        char method[16], path[1024], version[16];
+        int status_code;
+        http_request_parser(buf, method, path, version, &status_code);
         memset(buf, 0, sizeof buf);
 
+        // Checking the parser
+        printf("method: %s\n", method);
+        printf("path: %s\n", path);
+        printf("version: %s\n", version);
+        printf("status_code: %d\n", status_code);
 
         char msg[] = (
             "Would you like Fried chicken or Poutine?\n"
@@ -154,7 +204,7 @@ int main() {
 
 
         printf("You have chosen: %s. \nEnjoy!\n", client_choice);
-        
+
         if(send(newfd, client_choice, strlen(client_choice) + 1, 0) == -1) {
             printf("Error: sending client choice response\n");
             exit(1);
