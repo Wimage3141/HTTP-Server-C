@@ -16,6 +16,14 @@ I will skip this part for now and wait to handle this when I've implemented an H
 Process of making the HTTP server:  
 In my toy server, the server sends the first message, but in HTTP, the client send()s the first request which the server recv()s, parses until CRLF (`\r\n\r\n`) and then goes about doing it's business
 
+Short goals:
+1) [DONE] Make the client send the first request, and have the server recv it.  
+2) Implement a while loop in the client and break it after the final response is received
+3) Make the first client request, an HTTP request 'GET /index HTTP/1.1\r\n' and have the server parse it.  
+4) Start implementing the routing mechanism. Make index.html containing "`<html>Welcome!</html><br>`" and route to it.  
+5) 
+
+
 Process of making the TCP server:  
 The server connects to the client and gets out of the accept() 'block' once the client
 initiates the 'connect()' call

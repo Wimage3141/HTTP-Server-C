@@ -79,7 +79,28 @@ int main() {
 
         // process client request and send response to client
         // in this program, I will only send() "Hello World" to whoever makes a request
-        printf("accepted client request, sending message to client\n");
+        char buf[MAXBUFSIZE];
+        int n = recv(newfd, buf, sizeof buf, 0);
+        if(n > 0) {
+            if(n > MAXBUFSIZE) {
+                printf("Length exceeded.\n");
+                // send a bad signal.
+                continue;
+            }
+            buf[n] = '\0';
+        }
+        else if(n == 0) {
+            printf("Server is closed\n");
+        }
+        else {
+            printf("Error: recv");
+        }
+
+        printf("First HTTP formatted request incoming? Exciting!\n");
+        printf("The actual HTTP formatter request: \n%s\n", buf);
+        memset(buf, 0, sizeof buf);
+
+
         char msg[] = (
             "Would you like Fried chicken or Poutine?\n"
             "Please enter 1 for fried chicken\n"
@@ -92,8 +113,7 @@ int main() {
         printf("Message sent!\n\n");
 
         // receive the decision
-        char buf[2];
-        int n = recv(newfd, buf, sizeof buf, 0);
+        n = recv(newfd, buf, sizeof buf, 0);
 
         printf("test: what's n? %d\n", n);
         

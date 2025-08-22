@@ -9,6 +9,23 @@
 #define PORT "4950"
 #define MAXBUFSIZE 200
 
+// HTTP functions
+char *http_wrapper(char *resource_identifier, char *method, char *body) {
+    // resource_identifer -> which resrouce is being requested
+    // method -> GET/POST/PUT/...
+    // body of the HTTP request
+
+    char *header = malloc(200 * sizeof *header);
+
+    if( strcmp(method, "GET") == 0 ) {
+        // improve: implement a toupper_str() function
+        strcat(header, "GET");
+        strcat(header, " / ");
+        strcat(header, "HTTP/1.1\r\n");
+    }
+    return header;
+}
+
 void *get_in_addr(struct addrinfo *addrinfo) {
     struct sockaddr_in *ipv4;
     struct sockaddr_in6 *ipv6;
@@ -70,7 +87,6 @@ for(p = servinfo; p != NULL; p = p->ai_next) {
             printf("Error: connect\n");
             continue;
         }
-
         break;
     }
 
@@ -88,8 +104,14 @@ for(p = servinfo; p != NULL; p = p->ai_next) {
         sizeof ipstr
     );
 
-    // In my toy server, the server talks first, but in HTTP
-    printf("Sending request to server: %s\n", ipstr);
+    // In my toy server, the server talks first, but in HTTP the client must send the first request
+    char wrapped_content[200];
+    strcpy(wrapped_content, http_wrapper("/", "GET", ""));
+
+    if(send(sockfd, wrapped_content, sizeof wrapped_content, 0) == -1) {
+        printf("Error: sending initial request to server\n");
+        exit(1);
+    }
 
     char buf[MAXBUFSIZE];
     ssize_t recv_msg_last_idx = recv(sockfd, buf, sizeof buf, 0);
