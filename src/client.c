@@ -10,7 +10,7 @@
 #define MAXBUFSIZE 200
 
 // HTTP functions
-char *htttp_request_wrapper(char *resource_identifier, char *method, char *body) {
+char *http_request_wrapper(char *resource_identifier, char *method, char *body) {
     // resource_identifer -> which resrouce is being requested
     // method -> GET/POST/PUT/...
     // body of the HTTP request
@@ -106,7 +106,7 @@ for(p = servinfo; p != NULL; p = p->ai_next) {
 
     // In my toy server, the server talks first, but in HTTP the client must send the first request
     char wrapped_content[200];
-    strcpy(wrapped_content, htttp_request_wrapper("/", "GET", ""));
+    strcpy(wrapped_content, http_request_wrapper("/", "GET", ""));
 
     if(send(sockfd, wrapped_content, sizeof wrapped_content, 0) == -1) {
         printf("Error: sending initial request to server\n");

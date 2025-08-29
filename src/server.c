@@ -21,7 +21,7 @@ Content-Type = text/html\r\n
     
 // }
 
-void http_request_parser(char *http_request, char **method, char **path, char **version, int *status_code) {
+void http_request_parser(char *http_request, char *method, char *path, char *version, int *status_code) {
     char extra[16];
     memset(extra, 0, sizeof extra);
 
@@ -44,10 +44,86 @@ void http_request_parser(char *http_request, char **method, char **path, char **
             *status_code = 400;
             return;
         }
+
+        // If nothing is wrong, then status code = 200
+        *status_code = 200;
     }
     else {
         *status_code = 400; // Bad request
     }
+}
+
+void http_response(char *method, char *path, char *version) {
+    if(strcmp(method, "GET") == 0) {
+        if(strcmp(path, "/") == 0) {
+
+        }
+    }
+}
+
+// return the status code of the 'order' request
+void order(int newfd, int *status_code) {
+    char msg[] = (
+            "Would you like Fried chicken or Poutine?\n"
+            "Please enter 1 for fried chicken\n"
+            "Enter 2 for poutine\n"
+        );
+        if(send(newfd, msg, strlen(msg) + 1, 0) == -1) {
+            printf("Error: sending the initial prompt to the client\n");
+            printf("Don't exit to keep the server running\n");
+        }
+        printf("Message sent!\n\n");
+
+        // receive the decision
+        char buf[MAXBUFSIZE];
+        int n = recv(newfd, buf, sizeof buf, 0);
+
+        printf("test: what's n? %d\n", n);
+        
+        if(n > 0) {
+            if(n > 1) {
+                printf("Response length exceeded, did not select '1' or '2'\n");
+                // send an indicator that'll signal that something is wrong with the user input
+                // instead of making a custom one just for this case, I'll move on to http since that is exactly 
+                // what http is for! (among other things)
+                *status_code = 400;
+            }
+
+            buf[n] = '\0';
+        }
+        else if(n == 0) {
+            printf("Server closed\n");
+        }
+        else {
+            printf("Error: recv");
+        }
+
+        printf("Ahh, great choice! (%s)\n", buf);
+
+        // Sending the message according to the client response
+        // memset(msg, 0, sizeof msg);
+        char client_choice[20];
+        memset(client_choice, 0, sizeof client_choice);
+
+        if(strcmp(buf, "1") == 0) {
+            strcpy(client_choice, "Fried chicken");
+        }
+        else if(strcmp(buf, "2") == 0) {
+            strcpy(client_choice, "Poutine");
+        }
+        else {
+            printf("Please select a valid response (Either 1 or 2).\n");
+        }
+
+
+        printf("You have chosen: %s. \nEnjoy!\n", client_choice);
+
+        if(send(newfd, client_choice, strlen(client_choice) + 1, 0) == -1) {
+            printf("Error: sending client choice response\n");
+            exit(1);
+        }
+
+        close(newfd);
 }
 
 int main() {
@@ -151,66 +227,15 @@ int main() {
         printf("version: %s\n", version);
         printf("status_code: %d\n", status_code);
 
-        char msg[] = (
-            "Would you like Fried chicken or Poutine?\n"
-            "Please enter 1 for fried chicken\n"
-            "Enter 2 for poutine\n"
-        );
-        if(send(newfd, msg, strlen(msg) + 1, 0) == -1) {
-            printf("Error: sending the initial prompt to the client\n");
-            printf("Don't exit to keep the server running\n");
+        // Responding to the client's request
+        // http_response();
+        status_code = 200;
+        order(newfd, &status_code);
+        // change to real status_code later
+        if(status_code != 200) {
+            printf("prelim status code indicates bad request\n");
+            continue;
         }
-        printf("Message sent!\n\n");
-
-        // receive the decision
-        n = recv(newfd, buf, sizeof buf, 0);
-
-        printf("test: what's n? %d\n", n);
-        
-        if(n > 0) {
-            if(n > 1) {
-                printf("Response length exceeded, did not select '1' or '2'\n");
-                // send an indicator that'll signal that something is wrong with the user input
-                // instead of making a custom one just for this case, I'll move on to http since that is exactly 
-                // what http is for! (among other things)
-                continue;
-            }
-
-            buf[n] = '\0';
-        }
-        else if(n == 0) {
-            printf("Server closed\n");
-        }
-        else {
-            printf("Error: recv");
-        }
-
-        printf("Ahh, great choice! (%s)\n", buf);
-
-        // Sending the message according to the client response
-        // memset(msg, 0, sizeof msg);
-        char client_choice[20];
-        memset(client_choice, 0, sizeof client_choice);
-
-        if(strcmp(buf, "1") == 0) {
-            strcpy(client_choice, "Fried chicken");
-        }
-        else if(strcmp(buf, "2") == 0) {
-            strcpy(client_choice, "Poutine");
-        }
-        else {
-            printf("Please select a valid response (Either 1 or 2).\n");
-        }
-
-
-        printf("You have chosen: %s. \nEnjoy!\n", client_choice);
-
-        if(send(newfd, client_choice, strlen(client_choice) + 1, 0) == -1) {
-            printf("Error: sending client choice response\n");
-            exit(1);
-        }
-
-        close(newfd);
     }
     close(sockfd);
 }

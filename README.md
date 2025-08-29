@@ -6,9 +6,9 @@ HTTP Server in progress:
 
 TCP Server completed:
 - Working server that accepts client request and ignores (obvious) bad requests without crashing
-- client can send requests to communicate with the server and choose one of two meals!
+- Client can send requests to communicate with the server and choose one of two meals from the menu!
 - Communication currently only happens through localhost, will try LAN after http server
-- Problem: Client communication is hard-coded and the client might now handle an unpredictable event properly    
+- Problem: Client communication is currently hard-coded and the client might not handle an unpredictable event properly    
 One solution could be that the server sends a signal, indicating if the server response is good or bad, if good, the client can carry on with it's 'script', if bad then display some message and rerun that logic.  
 I will skip this part for now and wait to handle this when I've implemented an HTTP server instead of making my custom signals now
 
@@ -19,9 +19,10 @@ In my toy server, the server sends the first message, but in HTTP, the client se
 Short goals:
 1) [DONE] Make the client send the initial HTTP request, and have the server recv it.  
 2) [DONE] Make the first client request, an HTTP request 'GET /index HTTP/1.1\r\n' and have the server parse it.  
-3) Implement a while loop in the client and break it after the final response is received.  
-4) Start implementing the routing mechanism. Make index.html containing "`<html>Welcome!</html><br>`" and route to it.  
-5) 
+3) [DONE] Make the server menu into a function, so we have only one request-response cycle per loop instead of populating it with too many cycles.  
+4) Implement a while loop in the client and break it after the final response is received.  
+5) Start implementing the routing mechanism. Make index.html containing "`<html>Welcome!</html><br>`" and route to it.  
+6) 
 
 
 Process of making the TCP server:  
